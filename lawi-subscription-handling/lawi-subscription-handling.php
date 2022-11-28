@@ -17,3 +17,12 @@
  * Author URI:        https://wp-stars.com
  * Text Domain:
  */
+
+
+use wps\lawi\Plugin;
+
+// use composer autoload to load classes automatically
+require __DIR__ . '/vendor/autoload.php';
+
+// define global plugin with plugin __DIR__ path
+$plugin = new Plugin(__DIR__);
