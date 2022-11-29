@@ -27,6 +27,11 @@
 10. if development branch works fine, merg the development branch into the master branch
 
 ## Rule number 1 Never push into the master!
+# Date
+- Date format YYYY-mm-dd
+- Use DateTime()
+- Standard DateTime Zone = Vienna
+
 
 ## possible commit styles:
 
