@@ -20,6 +20,9 @@ class Plugin
     {
         add_shortcode('epaper-landingpage-sc', [$this, 'epaper_landingpage_sc']);
 
+        add_filter('woocommerce_add_cart_item_data', array($this, 'wps_add_custom_field_item_data'), 10, 4 );
+        add_filter( 'woocommerce_get_item_data', array($this, 'add_epaper_start_date_to_cart'), 10 ,4);
+
     }
 
     /**
@@ -33,8 +36,7 @@ class Plugin
      *      titel,
      *      price,
      *      select-start-date,
-     *      add-to-cart-btn
-     *  )
+     *      add-to-cart-btn )
      *
      * @param $atts wc-product-id
      * @param $content
@@ -64,8 +66,8 @@ class Plugin
         $name = $product->get_name();
         $price = $product->get_price();
 
-        // add to cart button
-        $button  = $this->get_add_to_cart_btn( $product );
+        // epaper form
+        $form  = $this->get_epaper_product_form( $product );
 
         // Build return string
         $string = '<div class="col-4">';
@@ -73,9 +75,7 @@ class Plugin
         $string .= '<h3>' . $name . '</h3>';
         $string .= wp_get_attachment_image($img_id);
         $string .= '<p>€' . $price . '</p>';
-        $string .= $this->get_epaper_date_selector();
-        $string .= $button;
-
+        $string .=  '<div class="epaper-form my-2">' . $form . '</div>';
         $string .= '</div>';
 
         return $string;
@@ -94,6 +94,7 @@ class Plugin
     public function get_epaper_date_selector(): string
     {
         // create selectable dates
+        // Todo: add empty select
 
         $config_day = 1;
         $date = new DateTime("now");
@@ -101,20 +102,23 @@ class Plugin
         $today = $date->format('Y-m-d');
 
         $next_month = date('Y-m-d', mktime(0, 0, 0, date('m') + 1, $config_day, date('Y')));
+        $next_month_pretty = date('d.m.Y', mktime(0, 0, 0, date('m') + 1, $config_day, date('Y')));
         $next_month_plus_one = date('Y-m-d', mktime(0, 0, 0, date('m') + 2, $config_day, date('Y')));
+        $next_month_plus_one_pretty = date('d.m.Y', mktime(0, 0, 0, date('m') + 2, $config_day, date('Y')));
         $next_month_plus_two = date('Y-m-d', mktime(0, 0, 0, date('m') + 3, $config_day, date('Y')));
+        $next_month_plus_two_pretty = date('d.m.Y', mktime(0, 0, 0, date('m') + 3, $config_day, date('Y')));
 
         $options = '';
         // show today only if its not the first of month
         if ($date->format('d') != '01') {
-            $options .= '<option value="' . $today . '">' . $today . '</option>';
+            $options .= '<option value="' . $today . '">Heute</option>';
         }
-        $options .= '<option value="' . $next_month . '">' . $next_month . '</option>';
-        $options .= '<option value="' . $next_month_plus_one . '">' . $next_month_plus_one . '</option>';
-        $options .= '<option value="' . $next_month_plus_two . '">' . $next_month_plus_two . '</option>';
+        $options .= '<option value="' . $next_month . '">' . $next_month_pretty . '</option>';
+        $options .= '<option value="' . $next_month_plus_one . '">' . $next_month_plus_one_pretty . '</option>';
+        $options .= '<option value="' . $next_month_plus_two . '">' . $next_month_plus_two_pretty . '</option>';
 
         // Build return string
-        $string = '<label for="cars">Startdatum wählen:</label>
+        $string = '<label for="epaper-startdate">Startdatum wählen:</label>
             <div>
                 <select name="epaper-startdate" id="epaper-startdate">
                  ' . $options . '
@@ -125,27 +129,38 @@ class Plugin
     }
 
     /**
-     * Description: returns button with different action
+     * Description: returns epaper_product_form with different action
      * -> depends on user logged in status
      *
      * @param $product
      * @return string
      */
-    public function get_add_to_cart_btn($product): string
+    public function get_epaper_product_form($product): string
     {
+        $wc_cart_url = wc_get_cart_url();
+        $action = $wc_cart_url . $product->add_to_cart_url();
+
         // button for loggedin users
-        $button = '<a href="' . $product->add_to_cart_url() . '" class="btn btn-primary">Add to cart</a>';
+        $form = '<form action="'. $action . '" method="post">';
+        $form .= $this->get_epaper_date_selector();
+        $form .= '<input type="submit" name="submit" value="Add to cart" class="btn btn-primary"/>';
+        $form .= '</form>';
 
         // button for NOT logged in users
         if (!is_user_logged_in()) {
-            $button = '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#lawiEpaperModal">Melden Sie sich an</button>';
-            $button .= $this->get_registration_modal();
+
+            $form = '<form action="'. $action . '" method="post">';
+            $form .= $this->get_epaper_date_selector();
+            $form .= '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#lawiEpaperModal">Melden Sie sich an</button>';
+            $form .= '</form>';
+
+            $form .= $this->get_login_modal();
         }
 
-        return $button;
+        return $form;
     }
 
-    public function get_registration_modal()
+    public function get_login_modal():string
     {
         $modal = '<div class="modal fade" id="lawiEpaperModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                     <div class="modal-dialog" role="document">
@@ -162,13 +177,52 @@ class Plugin
                           </div>
                           <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary">Save changes</button>
                           </div>
                         </div>
                       </div>
                     </div>';
 
         return $modal;
+    }
+
+    /**
+     * Add the date of field 'epaper-startdate' as item data to the cart object
+     *
+     * @param array $cart_item_meta_data
+     * @param int $product_id
+     * @param  $variation_id
+     * @param bool $quantity
+     *
+     * @return array
+     * @since 1.0.0
+     */
+    public function wps_add_custom_field_item_data($cart_item_meta_data, $product_id,  $variation_id, $quantity ): array {
+
+        if( ! empty( $_POST['epaper-startdate'] ) ) {
+            // Add the item data
+            $cart_item_meta_data['epaper-startdate'] = $_POST['epaper-startdate'];
+        }
+
+        return $cart_item_meta_data;
+    }
+
+
+    /**
+     * Display custom item data in the cart
+     */
+    function add_epaper_start_date_to_cart( $item_data, $cart_item_data ) {
+        if( isset( $cart_item_data['epaper-startdate'] ) ) {
+
+            $date = new DateTime($cart_item_data['epaper-startdate']);
+            $date_pretty = $date->format('d.m.Y');
+
+
+            $item_data[] = array(
+                'key' => __( 'Abo Startdatum', 'lawi_epaper' ),
+                'value' => $date_pretty
+            );
+        }
+        return $item_data;
     }
 
 }
