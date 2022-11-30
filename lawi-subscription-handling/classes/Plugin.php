@@ -4,13 +4,14 @@ namespace wps\lawi;
 
 use \DateTime;
 use \wps\lawi\permissions\PermissionService;
+use \wps\lawi\permissions\LawiRole;
 
 class Plugin
 {
 
     public string $path = '';
     public string $subscriptionsJsonPath = '/config/subscriptions.json';
-    public array $subscriptionsArray = [];
+    public $permissionService = null;
 
     public function __construct(string $path)
     {
@@ -19,16 +20,17 @@ class Plugin
         add_action('init', [$this, 'init']);
     }
 
-    public function init()
+    public function init(): void
     {
         add_shortcode('epaper-landingpage-sc', [$this, 'epaper_landingpage_sc']);
         $this->setupPermissions();
     }
 
-    public function setupPermissions(){
+    public function setupPermissions(): void
+    {
         if(file_exists($this->path . '/config/subscriptions.json')){
-            $permissionService = new PermissionService($this->path . $this->subscriptionsJsonPath);
-            $this->subscriptionsArray = $permissionService->getSubscriptionsArray();
+            $this->permissionService = new PermissionService($this->path . $this->subscriptionsJsonPath);
+            $this->subscriptionsArray = $this->permissionService->getSubscriptionsArray();
         }
     }
 
