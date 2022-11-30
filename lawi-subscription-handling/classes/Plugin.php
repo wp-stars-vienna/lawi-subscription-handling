@@ -3,23 +3,33 @@
 namespace wps\lawi;
 
 use \DateTime;
+use \wps\lawi\permissions\PermissionService;
+
 class Plugin
 {
 
     public string $path = '';
+    public string $subscriptionsJsonPath = '/config/subscriptions.json';
+    public array $subscriptionsArray = [];
 
     public function __construct(string $path)
     {
         $this->path = $path;
 
         add_action('init', [$this, 'init']);
-
     }
 
     public function init()
     {
         add_shortcode('epaper-landingpage-sc', [$this, 'epaper_landingpage_sc']);
+        $this->setupPermissions();
+    }
 
+    public function setupPermissions(){
+        if(file_exists($this->path . '/config/subscriptions.json')){
+            $permissionService = new PermissionService($this->path . $this->subscriptionsJsonPath);
+            $this->subscriptionsArray = $permissionService->getSubscriptionsArray();
+        }
     }
 
     /**
