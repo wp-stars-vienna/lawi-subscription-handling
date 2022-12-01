@@ -2,33 +2,83 @@
   "ePaperSubscriptions" : [
     {
       "SubscriptionProduct": "lawi-austria",
-      "userRoles": ["lawi-subscriber", "lawi-epaper-austria"],
-      "permissions": ["read-epaper-lawi-austria", "see-paywall"]
+      "userRoles": [
+        {
+          "slug": "lawi-epaper-austria",
+          "label": "LaWi AT E-Paper Abonnent/in"
+        }
+      ],
+      "permissions": [
+        {"read-epaper-lawi-austria" :  true},
+        {"see-paywall" :  true}
+      ]
     },
     {
       "SubscriptionProduct": "lawi-germany",
-      "userRoles": ["lawi-subscriber", "lawi-epaper-germany"],
-      "permissions": ["read-epaper-lawi-austria", "see-paywall"]
+      "userRoles": [
+        {
+          "slug": "lawi-epaper-germany",
+          "label": "LaWi DE E-Paper Abonnent/in"
+        }
+      ],
+      "permissions": [
+        {"read-epaper-lawi-austria" :  true},
+        {"see-paywall" :  true}
+      ]
     },
     {
       "SubscriptionProduct": "lawi-bio-austria",
-      "userRoles": ["lawi-subscriber", "lawi-epaper-bio-austria"],
-      "permissions": ["read-epaper-bio-austria", "see-paywall"]
+      "userRoles": [
+        {
+          "slug": "lawi-epaper-bio-austria",
+          "label": "LaWi Bio AT E-Paper Abonnent/in"
+        }
+      ],
+      "permissions": [
+        {"read-epaper-bio-austria" :  true},
+        {"see-paywall" :  true}
+      ]
     },
     {
       "SubscriptionProduct": "lawi-bio-germany",
-      "userRoles": ["lawi-subscriber", "lawi-epaper-bio-germany"],
-      "permissions": ["read-epaper-bio-germany", "see-paywall"]
+      "userRoles": [
+        {
+          "slug": "lawi-epaper-bio-germany",
+          "label": "LaWi Bio DE E-Paper Abonnent/in"
+        }
+      ],
+      "permissions": [
+        {"read-epaper-bio-germany" :  true},
+        {"see-paywall" :  true}
+      ]
     },
     {
       "SubscriptionProduct": "lawi-combi-austria",
-      "userRoles": ["lawi-subscriber", "lawi-epaper-combi-austria"],
-      "permissions": ["read-epaper-lawi-austria", "read-epaper-bio-austria", "see-paywall"]
+      "userRoles": [
+        {
+          "slug": "lawi-epaper-combi-austria",
+          "label": "LaWi Kombi AT E-Paper Abonnent/in"
+        }
+      ],
+      "permissions": [
+        {"read-epaper-lawi-austria" :  true},
+        {"read-epaper-bio-austria" :  true},
+        {"see-paywall" :  true}
+      ]
     },
     {
       "SubscriptionProduct": "lawi-combi-germany",
-      "userRoles": ["lawi-subscriber", "lawi-epaper-combi-germany"],
-      "permissions": ["read-epaper-lawi-germany", "read-epaper-bio-germany", "see-paywall"]
+      "userRoles": [
+        {
+          "slug": "lawi-epaper-combi-germany",
+          "label": "LaWi Kombi DE E-Paper Abonnent/in"
+        }
+      ],
+      "permissions": [
+        {"read-epaper-lawi-germany" :  true},
+        {"read-epaper-bio-germany" :  true},
+        {"see-paywall" :  true}
+      ]
     }
   ],
   "printSubscriptions" : []

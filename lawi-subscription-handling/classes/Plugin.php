@@ -3,25 +3,39 @@
 namespace wps\lawi;
 
 use \DateTime;
+use \wps\lawi\permissions\PermissionService;
+use \wps\lawi\permissions\LawiRole;
+
 class Plugin
 {
 
     public string $path = '';
+    public string $subscriptionsJsonPath = '/config/subscriptions.json';
+    public $permissionService = null;
 
     public function __construct(string $path)
     {
         $this->path = $path;
 
         add_action('init', [$this, 'init']);
-
     }
 
-    public function init()
+    public function init(): void
     {
         add_shortcode('epaper-landingpage-sc', [$this, 'epaper_landingpage_sc']);
+        $this->setupPermissions();
 
         add_filter('woocommerce_add_cart_item_data', array($this, 'wps_add_custom_field_item_data'), 10, 4 );
         add_filter( 'woocommerce_get_item_data', array($this, 'add_epaper_start_date_to_cart'), 10 ,4);
+
+    }
+
+    public function setupPermissions(): void
+    {
+        if(file_exists($this->path . '/config/subscriptions.json')){
+            $this->permissionService = new PermissionService($this->path . $this->subscriptionsJsonPath);
+            $this->subscriptionsArray = $this->permissionService->getSubscriptionsArray();
+        }
 
     }
 
