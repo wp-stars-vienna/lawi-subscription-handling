@@ -26,3 +26,5 @@ require __DIR__ . '/vendor/autoload.php';
 
 // define global plugin with plugin __DIR__ path
 $plugin = new Plugin(__DIR__);
+
+add_filter( 'jetpack_offline_mode', '__return_true' );
