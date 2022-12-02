@@ -15,10 +15,13 @@ class Plugin
 
     public function __construct(string $path)
     {
+        global $plugin;
         $this->path = $path;
 
         add_action('init', [$this, 'init']);
         add_action('acf/init', [$this, 'acfInit']);
+
+         $plugin= $this;
 
         // start watching for subscription changes
         new SubscriptionWatcher();
