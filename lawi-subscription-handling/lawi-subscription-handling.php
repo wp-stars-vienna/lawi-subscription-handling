@@ -24,5 +24,12 @@ use wps\lawi\Plugin;
 // use composer autoload to load classes automatically
 require __DIR__ . '/vendor/autoload.php';
 
+    if (!session_id()) {
+        session_start();
+    }
+
+
 // define global plugin with plugin __DIR__ path
 $plugin = new Plugin(__DIR__);
+
+

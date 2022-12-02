@@ -18,6 +18,9 @@ class Plugin
         $this->path = $path;
 
         add_action('init', [$this, 'init']);
+
+        add_action('wp_enqeue_scripts', [$this, 'register_scripts'] );
+
     }
 
     public function init(): void
@@ -28,6 +31,13 @@ class Plugin
         add_filter('woocommerce_add_cart_item_data', array($this, 'wps_add_custom_field_item_data'), 10, 4 );
         add_filter( 'woocommerce_get_item_data', array($this, 'add_epaper_start_date_to_cart'), 10 ,4);
 
+        add_action('wp_login', [$this, 'user_login_filter']);
+
+    }
+
+    public function register_scripts(): void
+    {
+        wp_register_script( 'get-ajax-stuff', $src, $deps, $ver, $in_footer );
     }
 
     public function setupPermissions(): void
@@ -154,8 +164,10 @@ class Plugin
         $wc_cart_url = wc_get_cart_url();
         $action = $wc_cart_url . $product->add_to_cart_url();
 
+        $product_id = $product->get_id();
+
         // button for loggedin users
-        $form = '<form action="'. $action . '" method="post">';
+        $form = '<form id="epaper-id-'. $product_id .'" action="'. $action . '" method="post">';
         $form .= $this->get_epaper_date_selector();
         $form .= '<input type="submit" name="submit" value="Add to cart" class="btn btn-primary"/>';
         $form .= '</form>';
@@ -163,10 +175,11 @@ class Plugin
         // button for NOT logged in users
         if (!is_user_logged_in()) {
 
-            $form = '<form action="'. $action . '" method="post">';
+            $form = '<form id="epaper-id-'. $product_id .'" action="'. $action . '" method="post">';
             $form .= $this->get_epaper_date_selector();
-            $form .= '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#lawiEpaperModal">Melden Sie sich an</button>';
+            $form .= '<button type="button" class="btn btn-primary" name="login" data-toggle="modal" data-target="#lawiEpaperModal">Melden Sie sich an</button>';
             $form .= '</form>';
+            $form .=  $this->get_ajax_stuff() ;
 
             $form .= $this->get_login_modal();
         }
@@ -186,7 +199,7 @@ class Plugin
                             </button>
                           </div>
                           <div class="modal-body">
-                             ' . ob_start() . wp_login_form() . ob_get_clean().'
+                             ' . ob_start() . wp_login_form() . ob_get_clean() .'
                             <div><p>Falls Sie Ihr Passwort vergessen haben, <a href="/passwort-zuruecksetzen"/>klicken Sie hier!</a></p></div>
                           </div>
                           <div class="modal-footer">
@@ -197,6 +210,38 @@ class Plugin
                     </div>';
 
         return $modal;
+    }
+
+    public function get_ajax_stuff() {
+     return ob_start() . '   <script type="text/javascript">
+        $(document).ready(function() {
+
+            alert("loaded");
+            $("#epaper-id-14").submit(function(e) {
+                e.preventDefault();
+                $.ajax({
+                    type: "POST",
+                    url: "login.php",
+                    data: $(this).serialize(),
+                    success: function(response)
+                    {
+                        var jsonData = JSON.parse(response);
+        
+                        // user is logged in successfully in the back-end
+                        if (jsonData.success == "1")
+                        {
+                            alert("lkj");
+                            location.href = "my_profile.php";
+                        }
+                        else
+                        {
+                            alert("Invalid Credentials!");
+                        }
+                    }
+                });
+            });
+        });
+        </script>' . ob_get_clean();
     }
 
     /**
@@ -215,7 +260,11 @@ class Plugin
         if( ! empty( $_POST['epaper-startdate'] ) ) {
             // Add the item data
             $cart_item_meta_data['epaper-startdate'] = $_POST['epaper-startdate'];
+            $_SESSION['epaper-startdate'] = $_POST['epaper-startdate'];
         }
+        session_start();
+        $_SESSION['paulsessionDings'] = "hi PLaul";
+
 
         return $cart_item_meta_data;
     }
@@ -238,5 +287,21 @@ class Plugin
         }
         return $item_data;
     }
+
+
+    public function user_login_filter() {
+        // store data in session
+
+
+
+        print_r($_SESSION);
+
+die();
+
+        // redirect to cart if
+        // -> user = XX
+        // -> Session data contains Product ID  and todays date
+    }
+
 
 }
