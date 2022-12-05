@@ -31,7 +31,10 @@ class Plugin
         $this->setupPermissions();
         add_filter('woocommerce_add_cart_item_data', array($this, 'wps_add_custom_field_item_data'), 10, 4 );
         add_filter( 'woocommerce_get_item_data', array($this, 'add_epaper_start_date_to_cart'), 10 ,4);
-        add_action('wp_login', [$this, 'user_login_filter']);
+
+        //add_action('wp_login', [$this, 'user_login_filter']);
+        add_action('login_redirect', [$this, 'user_login_filter']);
+
         add_shortcode('epaper-landingpage-sc', [$this, 'epaper_landingpage_sc']);
     }
 
@@ -63,7 +66,7 @@ class Plugin
             ];
         }
 
-        echo json_encode(['is_logged_in_user' => is_user_logged_in()]);
+        //echo json_encode(['is_logged_in_user' => is_user_logged_in()]);
         wp_die();
     }
 
@@ -169,12 +172,12 @@ class Plugin
         $action = $wc_cart_url . $product->add_to_cart_url();
         $product_id = $product->get_id();
 
-        $button = '<input type="submit" name="submit" value="Add to cart" class="btn btn-primary"/>';
+        $button = '<input type="submit" name="submit" value="Add to cart" class="btn btn-primary" data-modal="false"/>';
         $modal = '';
 
         if (!is_user_logged_in()){
             //$button = '<button type="button" class="btn btn-primary" name="login" data-toggle="modal" data-target="#lawiEpaperModal">Melden Sie sich an</button>';
-            $button = '<input type="submit" name="submit" value="Einloggen/Registrieren" class="btn btn-primary"/>';
+            $button = '<input type="submit" name="submit" value="Einloggen/Registrieren" class="btn btn-primary" data-modal="true" />';
             $modal = $this->get_login_modal();
         }
 
@@ -252,12 +255,10 @@ class Plugin
         if( isset( $cart_item_data['epaper-startdate'] ) ) {
 
             $date = new DateTime($cart_item_data['epaper-startdate']);
-            $date_pretty = $date->format('d.m.Y');
-
 
             $item_data[] = array(
                 'key' => __( 'Abo Startdatum', 'lawi_epaper' ),
-                'value' => $date_pretty
+                'value' => $date->format('d.m.Y')
             );
         }
         return $item_data;
@@ -265,13 +266,28 @@ class Plugin
 
 
     public function user_login_filter() {
+
+        if (!session_id()) {
+            session_start();
+        }
+
+        if(isset($_SESSION['epaperCartExtraData'])){
+
+            $data = $_SESSION['epaperCartExtraData'];
+            $productID = (int) $data['productID'];
+
+            $cart = WC()->cart;
+            $cart->empty_cart();
+            $cart->add_to_cart( $productID, 1 );
+
+            $checkout_url = wc_get_checkout_url();
+            //wp_safe_redirect($checkout_url);
+
+            unset($_SESSION['epaperCartExtraData']);
+            return $checkout_url;
+        }
+
         // store data in session
-
-
-
-        print_r($_SESSION);
-
-die();
 
         // redirect to cart if
         // -> user = XX

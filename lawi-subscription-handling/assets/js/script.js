@@ -8,20 +8,24 @@ jQuery(document).ready(function (){
 function store_epaper_form_data() {
     jQuery('.epaper-form form').submit(function (e) {
 
-        e.preventDefault();
-
         let date = jQuery(this).find('.dateSelect').find(":selected").val();
         let productID = jQuery(this).find('.productSelect').val();
+        let button = jQuery(this).find("input[type='submit']");
 
-         wp.ajax.post( 'addToCartExtraData', {
-             date : date,
-             id: productID
-         } ).done( response => {
-             let data = JSON.parse(response);
-             consol.log(data);
-             //jQuery(this).submit();
-         } ).fail( response => {
-             //console.log(response);
-         })
+        if(button.data('modal') == true){
+            e.preventDefault();
+            jQuery('#lawiEpaperModal').modal();
+
+             wp.ajax.post( 'addToCartExtraData', {
+                 date : date,
+                 id: productID
+             } ).done( response => {
+                 //let data = JSON.parse(response);
+                 //consol.log(data);
+                 //jQuery(this).submit();
+             } ).fail( response => {
+                 //console.log(response);
+             })
+        }
     });
 }
