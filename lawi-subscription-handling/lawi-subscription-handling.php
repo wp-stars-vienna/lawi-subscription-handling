@@ -31,5 +31,3 @@ if (!session_id()) {
 
 // define global plugin with plugin __DIR__ path
 $plugin = new Plugin(__DIR__);
-
-

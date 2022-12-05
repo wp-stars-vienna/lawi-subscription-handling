@@ -5,7 +5,7 @@ namespace wps\lawi;
 use \DateTime;
 use \DateTimeZone;
 use \wps\lawi\permissions\PermissionService;
-use \wps\lawi\permissions\LawiRole;
+use \wps\lawi\permissions\SubscriptionWatcher;
 
 class Plugin
 {
@@ -20,9 +20,12 @@ class Plugin
 
         add_action('init', [$this, 'init']);
         add_action('wp_enqueue_scripts', [$this, 'register_scripts'] );
-
         add_action( 'wp_ajax_nopriv_addToCartExtraData', [$this, 'addToCartExtraData'] );
         add_action( 'wp_ajax_addToCartExtraData', [$this, 'addToCartExtraData'] );
+        add_action('acf/init', [$this, 'acfInit']);
+
+        // start watching for subscription changes
+        new SubscriptionWatcher();
 
     }
 
@@ -47,6 +50,37 @@ class Plugin
         wp_enqueue_script( 'lawi-subscription-handling-js', $pluginsUrl . '/assets/js/script.js', ['jquery'], null, true );
     }
 
+    public function acfInit(){
+        $this->addAcfOptionspage();
+    }
+
+    /**
+     * create acf Optionspage
+     * @return void
+     */
+    public function addAcfOptionspage(){
+
+        if( function_exists('acf_add_options_page') ) {
+
+            // Register options page.
+            acf_add_options_page(array(
+                'page_title'    => __('Landwirt ePaper Subscriptions'),
+                'menu_title'    => __('ePaper Subscriptions'),
+                'menu_slug'     => 'lawi-epaper-subscriptions',
+                'parent_slug' => 'options-general.php',
+                'capability'    => 'edit_posts',
+                'redirect'      => false
+            ));
+
+            // load acf fieldgroup from php
+            include_once $this->path . '/assets/fieldgroups/subscriptionProducts.php';
+        }
+    }
+
+    /**
+     * Setup all the permissions
+     * @return void
+     */
     public function setupPermissions(): void
     {
         if(file_exists($this->path . '/config/subscriptions.json')){
