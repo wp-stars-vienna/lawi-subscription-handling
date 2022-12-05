@@ -136,10 +136,10 @@ class Plugin
     {
         // array of available dates
         $dates = [
-            new DateTime('today', new \DateTimeZone('europe/vienna')),
-            new DateTime('first day of next month', new \DateTimeZone('europe/vienna')),
-            new DateTime('first day of next month + 1 month', new \DateTimeZone('europe/vienna')),
-            new DateTime('first day of next month + 2 month', new \DateTimeZone('europe/vienna'))
+            new DateTime('today', new DateTimeZone('europe/vienna')),
+            new DateTime('first day of next month', new DateTimeZone('europe/vienna')),
+            new DateTime('first day of next month + 1 month', new DateTimeZone('europe/vienna')),
+            new DateTime('first day of next month + 2 month', new DateTimeZone('europe/vienna'))
         ];
 
         $options = '';
@@ -239,14 +239,23 @@ class Plugin
             // Add the item data
             $cart_item_meta_data['epaper-startdate'] = $_POST['epaper-startdate'];
             $_SESSION['epaper-startdate'] = $_POST['epaper-startdate'];
+            return $cart_item_meta_data;
         }
-        session_start();
-        $_SESSION['paulsessionDings'] = "hi PLaul";
 
+        if (!session_id()) {
+            session_start();
+        }
+
+        if(isset($_SESSION['epaperCartExtraData'])) {
+            $data = $_SESSION['epaperCartExtraData'];
+            $productID = (int) $data['productID'];
+            $startDate = $data['startDate'];
+            $cart_item_meta_data['epaper-startdate'] = $startDate;
+            unset($_SESSION['epaperCartExtraData']);
+        }
 
         return $cart_item_meta_data;
     }
-
 
     /**
      * Display custom item data in the cart
@@ -264,7 +273,6 @@ class Plugin
         return $item_data;
     }
 
-
     public function user_login_filter() {
 
         if (!session_id()) {
@@ -281,18 +289,11 @@ class Plugin
             $cart->add_to_cart( $productID, 1 );
 
             $checkout_url = wc_get_checkout_url();
-            //wp_safe_redirect($checkout_url);
 
             unset($_SESSION['epaperCartExtraData']);
+
+            // return directly to the checkout
             return $checkout_url;
         }
-
-        // store data in session
-
-        // redirect to cart if
-        // -> user = XX
-        // -> Session data contains Product ID  and todays date
     }
-
-
 }

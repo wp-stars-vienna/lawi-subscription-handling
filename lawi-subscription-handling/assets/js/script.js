@@ -20,9 +20,7 @@ function store_epaper_form_data() {
                  date : date,
                  id: productID
              } ).done( response => {
-                 //let data = JSON.parse(response);
-                 //consol.log(data);
-                 //jQuery(this).submit();
+
              } ).fail( response => {
                  //console.log(response);
              })
