@@ -6,6 +6,7 @@ use \DateTime;
 use \DateTimeZone;
 use \wps\lawi\permissions\PermissionService;
 use \wps\lawi\permissions\SubscriptionWatcher;
+use \wps\lawi\SubscriptionService;
 
 class Plugin
 {
@@ -27,6 +28,7 @@ class Plugin
         // start watching for subscription changes
         new SubscriptionWatcher();
 
+        new SubscriptionService();
     }
 
     public function init(): void
