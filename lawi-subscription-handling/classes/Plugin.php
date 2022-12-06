@@ -5,6 +5,7 @@ namespace wps\lawi;
 use \DateTime;
 use \wps\lawi\permissions\PermissionService;
 use \wps\lawi\permissions\SubscriptionWatcher;
+use \wps\lawi\SubscriptionService;
 
 class Plugin
 {
@@ -22,6 +23,8 @@ class Plugin
 
         // start watching for subscription changes
         new SubscriptionWatcher();
+
+        new SubscriptionService();
     }
 
     public function init(): void
@@ -72,6 +75,15 @@ class Plugin
             $this->subscriptionsArray = $this->permissionService->getSubscriptionsArray();
         }
 
+    }
+
+     /**
+     * Setup subscription service
+     * @return void
+     */
+    public function setupSubscriptionService(): void
+    {
+        $this->subscriptionService = new SubscriptionService($this->path);
     }
 
     /**
