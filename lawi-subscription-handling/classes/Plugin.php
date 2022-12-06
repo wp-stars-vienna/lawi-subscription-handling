@@ -11,26 +11,34 @@ use \wps\lawi\SubscriptionService;
 class Plugin
 {
 
+    private static $instance;
+
     public string $path = '';
     public string $subscriptionsJsonPath = '/config/subscriptions.json';
     public $permissionService = null;
 
+    public static function get_instance(string $path='')
+    {
+        if (null === self::$instance) {
+            if($path != ''){
+                self::$instance = new self($path);
+            }
+        }
+
+        return self::$instance;
+    }
+
     public function __construct(string $path)
     {
-        global $plugin;
         $this->path = $path;
-
         add_action('init', [$this, 'init']);
         add_action('wp_enqueue_scripts', [$this, 'register_scripts'] );
         add_action( 'wp_ajax_nopriv_addToCartExtraData', [$this, 'addToCartExtraData'] );
         add_action( 'wp_ajax_addToCartExtraData', [$this, 'addToCartExtraData'] );
         add_action('acf/init', [$this, 'acfInit']);
 
-         $plugin= $this;
-
         // start watching for subscription changes
         new SubscriptionWatcher();
-
         new SubscriptionService();
     }
 

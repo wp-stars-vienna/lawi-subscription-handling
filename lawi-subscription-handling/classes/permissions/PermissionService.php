@@ -2,6 +2,8 @@
 
 namespace wps\lawi\permissions;
 
+use WP_User;
+
 class PermissionService
 {
 
@@ -71,6 +73,14 @@ class PermissionService
         }
 
         return false;
+    }
+
+    public function add(WP_User $user, LawiRole $role){
+        $user->add_role( $role->slug );
+    }
+
+    public function remove(WP_User $user, LawiRole $role){
+        $user->remove_role( $role->slug );
     }
 
 }
