@@ -3,6 +3,7 @@
 namespace wps\lawi;
 
 use \DateTime;
+use \DateTimeZone;
 use \wps\lawi\permissions\PermissionService;
 use \wps\lawi\permissions\SubscriptionWatcher;
 use \wps\lawi\SubscriptionService;
@@ -19,6 +20,9 @@ class Plugin
         $this->path = $path;
 
         add_action('init', [$this, 'init']);
+        add_action('wp_enqueue_scripts', [$this, 'register_scripts'] );
+        add_action( 'wp_ajax_nopriv_addToCartExtraData', [$this, 'addToCartExtraData'] );
+        add_action( 'wp_ajax_addToCartExtraData', [$this, 'addToCartExtraData'] );
         add_action('acf/init', [$this, 'acfInit']);
 
         // start watching for subscription changes
@@ -29,12 +33,23 @@ class Plugin
 
     public function init(): void
     {
-        add_shortcode('epaper-landingpage-sc', [$this, 'epaper_landingpage_sc']);
         $this->setupPermissions();
-
         add_filter('woocommerce_add_cart_item_data', array($this, 'wps_add_custom_field_item_data'), 10, 4 );
         add_filter( 'woocommerce_get_item_data', array($this, 'add_epaper_start_date_to_cart'), 10 ,4);
 
+        //add_action('wp_login', [$this, 'user_login_filter']);
+        add_action('login_redirect', [$this, 'user_login_filter']);
+
+        add_shortcode('epaper-landingpage-sc', [$this, 'epaper_landingpage_sc']);
+    }
+
+    public function register_scripts(): void
+    {
+        $pluginsUrl = plugins_url() . '/lawi-subscription-handling';
+
+        // load script for ajax handling
+        wp_enqueue_script( 'wp-util' );
+        wp_enqueue_script( 'lawi-subscription-handling-js', $pluginsUrl . '/assets/js/script.js', ['jquery'], null, true );
     }
 
     public function acfInit(){
@@ -77,13 +92,18 @@ class Plugin
 
     }
 
-     /**
-     * Setup subscription service
-     * @return void
-     */
-    public function setupSubscriptionService(): void
-    {
-        $this->subscriptionService = new SubscriptionService($this->path);
+    // save product data in the session to add it after login procedure
+    public function addToCartExtraData(){
+
+        if(isset($_SESSION)){
+            $_SESSION['epaperCartExtraData'] = [
+                'startDate' => $_POST['date'],
+                'productID' => $_POST['id'],
+            ];
+        }
+
+        //echo json_encode(['is_logged_in_user' => is_user_logged_in()]);
+        wp_die();
     }
 
     /**
@@ -106,6 +126,7 @@ class Plugin
      */
     public function epaper_landingpage_sc($atts = [], $content = NULL, $tag = ''): string
     {
+
         $product_ids = explode(",", $atts['id']);
 
         // get grid data per product
@@ -143,50 +164,35 @@ class Plugin
     }
 
     /**
-     * Description: returns start date selector
-     * - today
-     *   - show only if not equal to first day of month
-     * - first of next,
-     * - next+1
-     * - next+2 month
-     *
+     * @param int $productID
      * @return string
+     * @throws \Exception
      */
-    public function get_epaper_date_selector(): string
+    public function get_epaper_date_selector(int $productID): string
     {
-        // create selectable dates
-        // Todo: add empty select
-
-        $config_day = 1;
-        $date = new DateTime("now");
-//        $date = new DateTime("01.12.2022");
-        $today = $date->format('Y-m-d');
-
-        $next_month = date('Y-m-d', mktime(0, 0, 0, date('m') + 1, $config_day, date('Y')));
-        $next_month_pretty = date('d.m.Y', mktime(0, 0, 0, date('m') + 1, $config_day, date('Y')));
-        $next_month_plus_one = date('Y-m-d', mktime(0, 0, 0, date('m') + 2, $config_day, date('Y')));
-        $next_month_plus_one_pretty = date('d.m.Y', mktime(0, 0, 0, date('m') + 2, $config_day, date('Y')));
-        $next_month_plus_two = date('Y-m-d', mktime(0, 0, 0, date('m') + 3, $config_day, date('Y')));
-        $next_month_plus_two_pretty = date('d.m.Y', mktime(0, 0, 0, date('m') + 3, $config_day, date('Y')));
+        // array of available dates
+        $dates = [
+            new DateTime('today', new DateTimeZone('europe/vienna')),
+            new DateTime('first day of next month', new DateTimeZone('europe/vienna')),
+            new DateTime('first day of next month + 1 month', new DateTimeZone('europe/vienna')),
+            new DateTime('first day of next month + 2 month', new DateTimeZone('europe/vienna'))
+        ];
 
         $options = '';
-        // show today only if its not the first of month
-        if ($date->format('d') != '01') {
-            $options .= '<option value="' . $today . '">Heute</option>';
+        $options .= '<option value="" selected>' .  __('auswählen', '') . '</option>';
+        foreach ($dates as $key => $date){
+            $options .= '<option value="' . $date->format('Y-m-d') . '">' . ($key == 0 ? __('Heute', '') : $date->format('d.m.Y')) . '</option>';
         }
-        $options .= '<option value="' . $next_month . '">' . $next_month_pretty . '</option>';
-        $options .= '<option value="' . $next_month_plus_one . '">' . $next_month_plus_one_pretty . '</option>';
-        $options .= '<option value="' . $next_month_plus_two . '">' . $next_month_plus_two_pretty . '</option>';
 
         // Build return string
-        $string = '<label for="epaper-startdate">Startdatum wählen:</label>
-            <div>
-                <select name="epaper-startdate" id="epaper-startdate">
-                 ' . $options . '
-                </select>
-            </div>';
+        $html = '<div>';
+        $html .= '<label for="epaper-startdate-'.$productID.'">' . __('Startdatum:', '') . '</label><br>';
+        $html .= '<select name="epaper-startdate" id="epaper-startdate-'.$productID.'" class="form-select form-select-lg mb-3 dateSelect" required>';
+        $html .= $options;
+        $html .= '</select>';
+        $html .= '</div>';
 
-        return $string;
+        return $html;
     }
 
     /**
@@ -200,29 +206,35 @@ class Plugin
     {
         $wc_cart_url = wc_get_cart_url();
         $action = $wc_cart_url . $product->add_to_cart_url();
+        $product_id = $product->get_id();
 
-        // button for loggedin users
-        $form = '<form action="'. $action . '" method="post">';
-        $form .= $this->get_epaper_date_selector();
-        $form .= '<input type="submit" name="submit" value="Add to cart" class="btn btn-primary"/>';
-        $form .= '</form>';
+        $button = '<input type="submit" name="submit" value="Add to cart" class="btn btn-primary" data-modal="false"/>';
+        $modal = '';
 
-        // button for NOT logged in users
-        if (!is_user_logged_in()) {
-
-            $form = '<form action="'. $action . '" method="post">';
-            $form .= $this->get_epaper_date_selector();
-            $form .= '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#lawiEpaperModal">Melden Sie sich an</button>';
-            $form .= '</form>';
-
-            $form .= $this->get_login_modal();
+        if (!is_user_logged_in()){
+            //$button = '<button type="button" class="btn btn-primary" name="login" data-toggle="modal" data-target="#lawiEpaperModal">Melden Sie sich an</button>';
+            $button = '<input type="submit" name="submit" value="Einloggen/Registrieren" class="btn btn-primary" data-modal="true" />';
+            $modal = $this->get_login_modal();
         }
+
+        //render button
+        $form = '<form id="epaper-id-'. $product_id .'" action="'. $action . '" method="post">';
+        $form .= $this->get_epaper_date_selector($product_id);
+        $form .= '<input type="hidden" name="productID" value="'.$product_id.'" class="productSelect"/>';
+        $form .= $button;
+        $form .= '</form>';
+        $form .= $modal;
 
         return $form;
     }
 
     public function get_login_modal():string
     {
+        ob_start();
+        wp_login_form();
+        $loginform = ob_get_contents();
+        ob_end_clean();
+
         $modal = '<div class="modal fade" id="lawiEpaperModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
@@ -233,11 +245,11 @@ class Plugin
                             </button>
                           </div>
                           <div class="modal-body">
-                             ' . ob_start() . wp_login_form() . ob_get_clean().'
+                             ' . $loginform .'
                             <div><p>Falls Sie Ihr Passwort vergessen haben, <a href="/passwort-zuruecksetzen"/>klicken Sie hier!</a></p></div>
                           </div>
                           <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Schließen</button>
                           </div>
                         </div>
                       </div>
@@ -262,11 +274,24 @@ class Plugin
         if( ! empty( $_POST['epaper-startdate'] ) ) {
             // Add the item data
             $cart_item_meta_data['epaper-startdate'] = $_POST['epaper-startdate'];
+            $_SESSION['epaper-startdate'] = $_POST['epaper-startdate'];
+            return $cart_item_meta_data;
+        }
+
+        if (!session_id()) {
+            session_start();
+        }
+
+        if(isset($_SESSION['epaperCartExtraData'])) {
+            $data = $_SESSION['epaperCartExtraData'];
+            $productID = (int) $data['productID'];
+            $startDate = $data['startDate'];
+            $cart_item_meta_data['epaper-startdate'] = $startDate;
+            unset($_SESSION['epaperCartExtraData']);
         }
 
         return $cart_item_meta_data;
     }
-
 
     /**
      * Display custom item data in the cart
@@ -275,15 +300,36 @@ class Plugin
         if( isset( $cart_item_data['epaper-startdate'] ) ) {
 
             $date = new DateTime($cart_item_data['epaper-startdate']);
-            $date_pretty = $date->format('d.m.Y');
-
 
             $item_data[] = array(
                 'key' => __( 'Abo Startdatum', 'lawi_epaper' ),
-                'value' => $date_pretty
+                'value' => $date->format('d.m.Y')
             );
         }
         return $item_data;
     }
 
+    public function user_login_filter() {
+
+        if (!session_id()) {
+            session_start();
+        }
+
+        if(isset($_SESSION['epaperCartExtraData'])){
+
+            $data = $_SESSION['epaperCartExtraData'];
+            $productID = (int) $data['productID'];
+
+            $cart = WC()->cart;
+            $cart->empty_cart();
+            $cart->add_to_cart( $productID, 1 );
+
+            $checkout_url = wc_get_checkout_url();
+
+            unset($_SESSION['epaperCartExtraData']);
+
+            // return directly to the checkout
+            return $checkout_url;
+        }
+    }
 }
