@@ -6,6 +6,7 @@ use \DateTime;
 use \DateTimeZone;
 use \wps\lawi\permissions\PermissionService;
 use \wps\lawi\permissions\SubscriptionWatcher;
+use \wps\lawi\SubscriptionService;
 
 class Plugin
 {
@@ -30,13 +31,16 @@ class Plugin
         // start watching for subscription changes
         new SubscriptionWatcher();
 
+        new SubscriptionService();
     }
 
     public function init(): void
     {
         $this->setupPermissions();
-        add_filter('woocommerce_add_cart_item_data', array($this, 'wps_add_custom_field_item_data'), 10, 4 );
+        add_filter( 'woocommerce_add_cart_item_data', array($this, 'wps_add_custom_field_item_data'), 10, 4 );
         add_filter( 'woocommerce_get_item_data', array($this, 'add_epaper_start_date_to_cart'), 10 ,4);
+        add_action( 'woocommerce_checkout_update_order_meta', array($this, 'wps_update_order_meta'));
+
 
         //add_action('wp_login', [$this, 'user_login_filter']);
         add_action('login_redirect', [$this, 'user_login_filter']);
@@ -308,6 +312,15 @@ class Plugin
             );
         }
         return $item_data;
+    }
+
+    /**
+    * Save start date as order meta
+    */
+    public function wps_update_order_meta($order_id) {
+        if (!empty($_SESSION['epaper-startdate'])) {
+            update_post_meta($order_id, '_epaper_startdate', $_SESSION['epaper-startdate']);
+        }
     }
 
     public function user_login_filter() {
