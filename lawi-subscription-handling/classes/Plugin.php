@@ -240,25 +240,43 @@ class Plugin
         $modal = '<div class="modal fade" id="lawiEpaperModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
-                          <div class="modal-header">
-                            <h5 class="modal-title" id="lawiEpaperModalLabel">Anmelden</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                              <span aria-hidden="true">&times;</span>
-                            </button>
-                          </div>
-                          <div class="modal-body">
-                             ' . $loginform .'
-                            <div><p>Falls Sie Ihr Passwort vergessen haben, <a href="/passwort-zuruecksetzen"/>klicken Sie hier!</a></p></div>
-                          </div>
-                          <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Schließen</button>
-                          </div>
+                            <div class="modal-header">
+                                <h5>LANDWIRT Anmeldung / Registrierung</h5>
+                            </div>
+                
+                            <div class="modal-body">
+                            <!-- Nav tabs -->
+                                <ul class="nav nav-tabs" id="epaperModalTab" role="tablist">
+                                  <li class="nav-item">
+                                    <a class="nav-link active" id="anmelden-tab" data-toggle="tab" href="#anmelden" role="tab" aria-controls="anmelden" aria-selected="true">Anmelden</a>
+                                  </li>
+                                  <li class="nav-item">
+                                    <a class="nav-link" id="register-tab" data-toggle="tab" href="#register" role="tab" aria-controls="register" aria-selected="false">Registrieren</a>
+                                  </li>
+                                </ul>
+                                <!-- Tab panes -->
+                                <div class="tab-content">
+                                    <div class="tab-pane active" id="anmelden" role="tabpanel" aria-labelledby="anmelden-tab">
+                                        ' . $loginform . '
+                                        <p>Falls Sie Ihr Passwort vergessen haben, <a href="/passwort-zuruecksetzen"/>klicken Sie hier!</a></p>
+                                    </div>
+                                    <div class="tab-pane" id="register" role="tabpanel" aria-labelledby="register-tab">
+                                        <p>Sie können sich bei Landwirt-media.com registrieren und erhalten zugang zu Landwirt Inhalten.</p>
+                                        <a class="btn btn-primary" href="/registrieren/">Zur Registrierung</a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Schließen</button>
+                            </div>
                         </div>
-                      </div>
-                    </div>';
+                    </div>
+                </div>';
 
         return $modal;
     }
+
 
     /**
      * Add the date of field 'epaper-startdate' as item data to the cart object
