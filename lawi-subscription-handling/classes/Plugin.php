@@ -11,14 +11,26 @@ use \wps\lawi\SubscriptionService;
 class Plugin
 {
 
+    private static $instance;
+
     public string $path = '';
     public string $subscriptionsJsonPath = '/config/subscriptions.json';
     public $permissionService = null;
 
+    public static function get_instance(string $path='')
+    {
+        if (null === self::$instance) {
+            if($path != ''){
+                self::$instance = new self($path);
+            }
+        }
+
+        return self::$instance;
+    }
+
     public function __construct(string $path)
     {
         $this->path = $path;
-
         add_action('init', [$this, 'init']);
         add_action('wp_enqueue_scripts', [$this, 'register_scripts'] );
         add_action( 'wp_ajax_nopriv_addToCartExtraData', [$this, 'addToCartExtraData'] );
@@ -27,7 +39,6 @@ class Plugin
 
         // start watching for subscription changes
         new SubscriptionWatcher();
-
         new SubscriptionService();
     }
 
@@ -128,6 +139,8 @@ class Plugin
      */
     public function epaper_landingpage_sc($atts = [], $content = NULL, $tag = ''): string
     {
+
+        if(!isset($atts['id']) || $atts['id'] == '') return __('product ID not found', '');
 
         $product_ids = explode(",", $atts['id']);
 

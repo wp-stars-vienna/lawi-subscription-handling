@@ -27,28 +27,15 @@
       ]
     },
     {
-      "SubscriptionProduct": "lawiBioAustria",
+      "SubscriptionProduct": "lawiBio",
       "userRoles": [
         {
-          "slug": "lawi-epaper-bio-austria",
-          "label": "LaWi Bio AT E-Paper Abonnent/in"
+          "slug": "lawi-epaper-bio",
+          "label": "LaWi Bio E-Paper Abonnent/in"
         }
       ],
       "permissions": [
-        {"read-epaper-bio-austria" :  true},
-        {"see-paywall" :  true}
-      ]
-    },
-    {
-      "SubscriptionProduct": "lawiBioGermany",
-      "userRoles": [
-        {
-          "slug": "lawi-epaper-bio-germany",
-          "label": "LaWi Bio DE E-Paper Abonnent/in"
-        }
-      ],
-      "permissions": [
-        {"read-epaper-bio-germany" :  true},
+        {"read-epaper-bio" :  true},
         {"see-paywall" :  true}
       ]
     },
@@ -62,7 +49,7 @@
       ],
       "permissions": [
         {"read-epaper-lawi-austria" :  true},
-        {"read-epaper-bio-austria" :  true},
+        {"read-epaper-bio" :  true},
         {"see-paywall" :  true}
       ]
     },
@@ -76,7 +63,7 @@
       ],
       "permissions": [
         {"read-epaper-lawi-germany" :  true},
-        {"read-epaper-bio-germany" :  true},
+        {"read-epaper-bio" :  true},
         {"see-paywall" :  true}
       ]
     }

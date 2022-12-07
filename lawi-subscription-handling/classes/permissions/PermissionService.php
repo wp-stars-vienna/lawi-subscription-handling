@@ -2,6 +2,8 @@
 
 namespace wps\lawi\permissions;
 
+use WP_User;
+
 class PermissionService
 {
 
@@ -49,13 +51,36 @@ class PermissionService
             $jsonString = file_get_contents($this->subscriptionsJsonFile);
             $subscriptionsArray = json_decode($jsonString, true);
 
-            if(!!$subscriptionsArray && is_array($subscriptionsArray)){
-                $this->subscriptionsArray = $subscriptionsArray;
-                return true;
+            if(
+                !!$subscriptionsArray &&
+                is_array($subscriptionsArray) &&
+                isset($subscriptionsArray['ePaperSubscriptions']) &&
+                is_array($subscriptionsArray['ePaperSubscriptions']) &&
+                count($subscriptionsArray['ePaperSubscriptions'])>0)
+            {
+                $enrichData = [];
+                foreach ($subscriptionsArray['ePaperSubscriptions'] as $subscription){
+                    $productID = get_field('wps_lawi_subproduct_' . $subscription['SubscriptionProduct'], 'options') ?? null;
+                    if(!!$productID){
+                        $enrichData[$productID] = $subscription;
+                    }
+                }
+
+                $subscriptionsArray['ePaperSubscriptions'] = $enrichData;
+                    $this->subscriptionsArray = $subscriptionsArray;
+                    return true;
             }
         }
 
         return false;
+    }
+
+    public function add(WP_User $user, LawiRole $role){
+        $user->add_role( $role->slug );
+    }
+
+    public function remove(WP_User $user, LawiRole $role){
+        $user->remove_role( $role->slug );
     }
 
 }
