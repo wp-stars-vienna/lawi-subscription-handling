@@ -140,6 +140,8 @@ class Plugin
     public function epaper_landingpage_sc($atts = [], $content = NULL, $tag = ''): string
     {
 
+        if(!isset($atts['id']) || $atts['id'] == '') return __('product ID not found', '');
+
         $product_ids = explode(",", $atts['id']);
 
         // get grid data per product

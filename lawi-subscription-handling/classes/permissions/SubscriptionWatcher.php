@@ -28,16 +28,15 @@ class SubscriptionWatcher
 
         $now = new DateTime('today', new DateTimeZone('europe/vienna'));
         $startDate = new DateTime($subscription->get_date( 'start' ), new DateTimeZone('europe/vienna'));
-        $status = $subscription->get_status();
         $permissions = $this->getPermissionDataBySubscription($subscription);
 
         if(isset($permissions['userRoles']) && count($permissions['userRoles'])>0){
 
             // When the start date has been reached
-            //if($now >= $startDate){
+            if($now >= $startDate){
 
                 // and the new status is
-                if(in_array($subscription->get_status(), array('active'))){
+                if(in_array($subscription->get_status(), array('active', 'pending-cancel'))){
                     foreach ($permissions['userRoles'] as $userRole){
                         $this->addPermissions($userRole['slug'], $subscription);
                     }
@@ -49,7 +48,9 @@ class SubscriptionWatcher
                     }
                     return;
                 }
-            //}
+            }
+        }else{
+            wc_add_notice('userRoles not found in permission | configuration', 'error');
         }
     }
 
@@ -66,6 +67,6 @@ class SubscriptionWatcher
     public function getPermissionDataBySubscription(WC_Subscription $subscription){
         $items = $subscription->get_items();
         $subscriptionProduct = $items[array_key_first($items)];
-        return Plugin::get_instance()->permissionService->getSubscriptionsArray()['ePaperSubscriptions'][$subscriptionProduct->get_id()];
+        return Plugin::get_instance()->permissionService->getSubscriptionsArray()['ePaperSubscriptions'][$subscriptionProduct->get_product_id()];
     }
 }
