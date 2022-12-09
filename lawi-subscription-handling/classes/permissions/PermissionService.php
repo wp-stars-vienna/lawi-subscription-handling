@@ -62,6 +62,16 @@ class PermissionService
                 foreach ($subscriptionsArray['ePaperSubscriptions'] as $subscription){
                     $productID = get_field('wps_lawi_subproduct_' . $subscription['SubscriptionProduct'], 'options') ?? null;
                     if(!!$productID){
+
+                        if(isset($subscription['permissions']) && count($subscription['permissions'])>0){
+                            $permissionArray = [];
+                            foreach ($subscription['permissions'] as $permission){
+                                $key = array_key_first($permission);
+                                if(!!$key) $permissionArray[$key] = $permission[$key];
+                            }
+
+                            $subscription['permissions'] = $permissionArray;
+                        }
                         $enrichData[$productID] = $subscription;
                     }
                 }
