@@ -20,7 +20,7 @@ class LawiRole
         $this->label = $label;
         $this->slug = $slug;
         $this->permissons = $permissions;
-        $this->store();
+        $this->update();
     }
 
     /**
