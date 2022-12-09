@@ -157,6 +157,18 @@ class Plugin
     public function get_epaper_grid_item($product_id): string
     {
         $product = wc_get_product($product_id);
+        $user = wp_get_current_user();
+        $isSubscriber = false;
+
+        if(isset($user)){
+            $bannedStatis = ['active', 'pending-cancel', 'on-hold', ];
+            foreach ($bannedStatis as $status){
+                if(true === wcs_user_has_subscription( $user->ID, $product_id, $status)){
+                    $isSubscriber = true;
+                    break;
+                }
+            }
+        }
 
         // get product data
         $img_id = $product->get_image_id();
@@ -165,6 +177,10 @@ class Plugin
 
         // epaper form
         $form  = $this->get_epaper_product_form( $product );
+
+        if($isSubscriber === true){
+            $form = '<button type="button" class="btn btn-secondary" disabled>Bereits abonniert</button>';
+        }
 
         // Build return string
         $string = '<div class="col-4">';
