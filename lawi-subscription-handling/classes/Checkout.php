@@ -13,6 +13,8 @@ class Checkout
         add_action( 'woocommerce_checkout_process', [$this, 'validate_extra_checkbox']);
         add_action( 'woocommerce_checkout_update_order_meta', [$this, 'store_extra_checkbox_value'], 10, 1);
         add_action( 'woocommerce_admin_order_data_after_billing_address', [$this, 'display_extra_checkbox_value'], 10, 1);
+        add_action( 'woocommerce_coupons_enabled', [$this, 'woocommerce_checkout_coupon_form'], 9999, 1 );
+        add_filter( 'woocommerce_coupon_is_valid_for_cart', [$this, 'exclude_product_from_subscription_products'], 9999, 2);
     }
 
     public function needWafeOfwithdrawal(){
@@ -32,6 +34,27 @@ class Checkout
         }
 
         return false;
+    }
+
+    public function isSubscription(){
+
+        if (is_checkout() === false && is_cart() === false ) return;
+
+        $cart = WC()->cart->get_cart();
+        if(is_array($cart) && count($cart) === 1){
+            $cartProduct = $cart[array_key_first($cart)];
+            if( isset($cartProduct['data']) && $cartProduct['data'] instanceof  \WC_Product_Subscription){
+                if(isset($cartProduct['epaper-startdate'])){
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public function woocommerce_checkout_coupon_form(bool $enabled){
+        return !$this->isSubscription();
     }
 
     /**
@@ -104,4 +127,15 @@ class Checkout
 
         echo $html;
     }
+
+    public function exclude_product_from_subscription_products($is_type, $that){
+        if($this->isSubscription() === true){
+            return false;
+        }
+
+        return $is_type;
+    }
+
+
+
 }
