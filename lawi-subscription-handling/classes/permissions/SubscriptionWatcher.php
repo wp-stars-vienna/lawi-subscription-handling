@@ -14,10 +14,20 @@ class SubscriptionWatcher
     public function __construct(){
         add_action('init', [$this, 'init']);
         add_action('woocommerce_subscription_status_updated', [$this, 'checkAndUpdateUserRolesAndPermissions']);
+
+        // this line can be removed if we swtich to server based cron jobs
         add_action('daily_lawi_subscription_check_cron_event', [$this, 'dailyCronEvent']);
+
+        // cron event as ajax action for direct call
+        add_action('wp_ajax_nopriv_dailyCronEvent', [$this, 'dailyCronEvent']);
+        add_action('wp_ajax_dailyCronEvent', [$this, 'dailyCronEvent']);
+
     }
 
     public function init(){
+
+        // initialise the cronjob for checking the start-date
+        // this can be removed if we switch to server based cronjobs
         if (! wp_next_scheduled ( 'daily_lawi_subscription_check_cron_event' )) {
             wp_schedule_event(time(), 'daily', 'daily_lawi_subscription_check_cron_event');
         }
