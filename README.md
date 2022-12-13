@@ -37,3 +37,15 @@
 
 'fix: i fixed some bug'
 'feat: i added a news function'
+
+## Stripe CLI for Testing
+
+1. Install Woocommerce Stripe Addon
+2. Install Stripe CLI on your local Machine (easy with homebrew) https://stripe.com/docs/stripe-cli
+3. Listen for Webhook events: https://dashboard.stripe.com/test/webhooks/create?endpoint_location=local
+4. Test your Payments with testcard: 4242424242424242
+
+
+```console
+stripe listen --forward-to localhost:4242/webhook
+```

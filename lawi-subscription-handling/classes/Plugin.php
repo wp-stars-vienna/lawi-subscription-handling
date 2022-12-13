@@ -11,14 +11,26 @@ use \wps\lawi\SubscriptionService;
 class Plugin
 {
 
+    private static $instance;
+
     public string $path = '';
     public string $subscriptionsJsonPath = '/config/subscriptions.json';
     public $permissionService = null;
 
+    public static function get_instance(string $path='')
+    {
+        if (null === self::$instance) {
+            if($path != ''){
+                self::$instance = new self($path);
+            }
+        }
+
+        return self::$instance;
+    }
+
     public function __construct(string $path)
     {
         $this->path = $path;
-
         add_action('init', [$this, 'init']);
         add_action('wp_enqueue_scripts', [$this, 'register_scripts'] );
         add_action( 'wp_ajax_nopriv_addToCartExtraData', [$this, 'addToCartExtraData'] );
@@ -27,8 +39,10 @@ class Plugin
 
         // start watching for subscription changes
         new SubscriptionWatcher();
-
         new SubscriptionService();
+
+        // checkout modifications
+        new Checkout();
     }
 
     public function init(): void
@@ -38,10 +52,7 @@ class Plugin
         add_filter( 'woocommerce_get_item_data', array($this, 'add_epaper_start_date_to_cart'), 10 ,4);
         add_action( 'woocommerce_checkout_update_order_meta', array($this, 'wps_update_order_meta'));
 
-
-        //add_action('wp_login', [$this, 'user_login_filter']);
         add_action('login_redirect', [$this, 'user_login_filter']);
-
         add_shortcode('epaper-landingpage-sc', [$this, 'epaper_landingpage_sc']);
     }
 
@@ -129,6 +140,8 @@ class Plugin
     public function epaper_landingpage_sc($atts = [], $content = NULL, $tag = ''): string
     {
 
+        if(!isset($atts['id']) || $atts['id'] == '') return __('product ID not found', '');
+
         $product_ids = explode(",", $atts['id']);
 
         // get grid data per product
@@ -144,6 +157,18 @@ class Plugin
     public function get_epaper_grid_item($product_id): string
     {
         $product = wc_get_product($product_id);
+        $user = wp_get_current_user();
+        $isSubscriber = false;
+
+        if(isset($user)){
+            $bannedStatis = ['active', 'pending-cancel', 'on-hold', ];
+            foreach ($bannedStatis as $status){
+                if(true === wcs_user_has_subscription( $user->ID, $product_id, $status)){
+                    $isSubscriber = true;
+                    break;
+                }
+            }
+        }
 
         // get product data
         $img_id = $product->get_image_id();
@@ -152,6 +177,10 @@ class Plugin
 
         // epaper form
         $form  = $this->get_epaper_product_form( $product );
+
+        if($isSubscriber === true){
+            $form = '<button type="button" class="btn btn-secondary" disabled>Bereits abonniert</button>';
+        }
 
         // Build return string
         $string = '<div class="col-4">';
@@ -209,13 +238,14 @@ class Plugin
         $wc_cart_url = wc_get_cart_url();
         $action = $wc_cart_url . $product->add_to_cart_url();
         $product_id = $product->get_id();
+        $cartEmpty = WC()->cart->get_cart_contents_count() == 0 ? 'true' : 'false';
 
-        $button = '<input type="submit" name="submit" value="Add to cart" class="btn btn-primary" data-modal="false"/>';
+        $button = '<input type="submit" name="submit" value="Abonnieren" class="btn btn-primary" data-modal="false"/>';
         $modal = '';
 
         if (!is_user_logged_in()){
             //$button = '<button type="button" class="btn btn-primary" name="login" data-toggle="modal" data-target="#lawiEpaperModal">Melden Sie sich an</button>';
-            $button = '<input type="submit" name="submit" value="Einloggen/Registrieren" class="btn btn-primary" data-modal="true" />';
+            $button = '<input type="submit" name="submit" value="Einloggen/Registrieren" class="btn btn-primary" data-modal="login" />';
             $modal = $this->get_login_modal();
         }
 
@@ -223,9 +253,11 @@ class Plugin
         $form = '<form id="epaper-id-'. $product_id .'" action="'. $action . '" method="post">';
         $form .= $this->get_epaper_date_selector($product_id);
         $form .= '<input type="hidden" name="productID" value="'.$product_id.'" class="productSelect"/>';
+        $form .= '<input type="hidden" name="CartEmpty" value="' . $cartEmpty . '" class="CartEmpty"/>';
         $form .= $button;
         $form .= '</form>';
         $form .= $modal;
+        $form .= $this->get_cartNotEmpty_modal();
 
         return $form;
     }
@@ -277,6 +309,29 @@ class Plugin
         return $modal;
     }
 
+
+    public function get_cartNotEmpty_modal():string
+    {
+        return '<div class="modal fade" id="lawiEpaperCleanCartModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title" id="lawiEpaperModalLabel">Ihr Warenkorb ist nicht leer</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                            Abos können nicht zusammen mit anderen Produkten bestellt werden. Ihr Warenkorb wird daher geleert.
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Schließen</button>
+                            <button type="button" class="btn btn-primary emptyCart">Ok</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>';
+    }
 
     /**
      * Add the date of field 'epaper-startdate' as item data to the cart object
