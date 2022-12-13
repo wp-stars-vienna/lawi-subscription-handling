@@ -15,6 +15,7 @@ class Checkout
         add_action( 'woocommerce_admin_order_data_after_billing_address', [$this, 'display_extra_checkbox_value'], 10, 1);
         add_action( 'woocommerce_coupons_enabled', [$this, 'woocommerce_checkout_coupon_form'], 9999, 1 );
         add_filter( 'woocommerce_coupon_is_valid_for_cart', [$this, 'exclude_product_from_subscription_products'], 9999, 2);
+        add_action( 'woocommerce_thankyou', [$this, 'new_order_action'], 10, 2 );
     }
 
     public function needWafeOfwithdrawal(){
@@ -136,6 +137,24 @@ class Checkout
         return $is_type;
     }
 
+    public function new_order_action($order_id)
+    {
+        if ( ! $order_id ) {
+            return;
+        }
 
+        $order = wc_get_order( $order_id );
+        $items = $order->get_items();
 
+        if(!!$items && is_array($items) && count($items) === 1){
+            $item = $items[array_key_first($items)];
+            if(isset($item) && !!$item){
+                $productId = $item->get_product_id();
+                $product = wc_get_product( $productId );
+                if ( class_exists(\WC_Subscriptions_Product::class) && \WC_Subscriptions_Product::is_subscription( $product ) ) {
+                   $order->update_status( 'completed' );
+                }
+            }
+        }
+    }
 }
