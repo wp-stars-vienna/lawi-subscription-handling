@@ -1,7 +1,12 @@
-jQuery(document).ready(function (){
-    if(jQuery('.epaper-form form').length){
+jQuery(document).ready(function () {
+    if (jQuery('.epaper-form form').length) {
         store_epaper_form_data();
     }
+
+    $('#epaperModalTab a').on('click', function (e) {
+        e.preventDefault()
+        $(this).tab('show')
+    })
 });
 
 // store formdata in session
@@ -33,14 +38,14 @@ function store_epaper_form_data() {
             e.preventDefault();
             jQuery('#lawiEpaperModal').modal();
 
-             wp.ajax.post( 'addToCartExtraData', {
-                 date : date,
-                 id: productID
-             } ).done( response => {
+            wp.ajax.post('addToCartExtraData', {
+                date: date,
+                id: productID
+            }).done(response => {
 
-             } ).fail( response => {
-                 //console.log(response);
-             })
+            }).fail(response => {
+                //console.log(response);
+            })
         }
     });
 }
