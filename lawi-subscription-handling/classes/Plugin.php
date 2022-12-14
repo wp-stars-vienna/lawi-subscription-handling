@@ -62,7 +62,7 @@ class Plugin
 
         // load script for ajax handling
         wp_enqueue_script( 'wp-util' );
-        wp_enqueue_script( 'lawi-subscription-handling-js', $pluginsUrl . '/assets/js/script.js', ['jquery'], null, true );
+        wp_enqueue_script( 'lawi-subscription-handling-js', $pluginsUrl . '/assets/js/script.js', ['jquery', 'wps-scripts'], null, true );
     }
 
     public function acfInit(){

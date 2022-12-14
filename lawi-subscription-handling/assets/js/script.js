@@ -3,9 +3,9 @@ jQuery(document).ready(function () {
         store_epaper_form_data();
     }
 
-    $('#epaperModalTab a').on('click', function (e) {
+    jQuery('#epaperModalTab a').on('click', function (e) {
         e.preventDefault()
-        $(this).tab('show')
+        jQuery(this).tab('show')
     })
 });
 
