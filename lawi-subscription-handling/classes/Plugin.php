@@ -233,12 +233,16 @@ class Plugin
      * @param $product
      * @return string
      */
-    public function get_epaper_product_form($product): string
+    public function get_epaper_product_form($product): string|null
     {
         $wc_cart_url = wc_get_cart_url();
         $action = $wc_cart_url . $product->add_to_cart_url();
         $product_id = $product->get_id();
-        $cartEmpty = WC()->cart->get_cart_contents_count() == 0 ? 'true' : 'false';
+        $cart = WC()->cart;
+
+        if($cart === null) return null;
+
+        $cartEmpty = $cart->get_cart_contents_count() == 0 ? 'true' : 'false';
 
         $button = '<input type="submit" name="submit" value="Abonnieren" class="btn btn-primary" data-modal="false"/>';
         $modal = '';
