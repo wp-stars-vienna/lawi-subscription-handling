@@ -154,9 +154,13 @@ class Plugin
         return $string;
     }
 
-    public function get_epaper_grid_item($product_id): string
+    public function get_epaper_grid_item($product_id): string|null
     {
         $product = wc_get_product($product_id);
+
+        // return if product not found
+        if($product === false || $product === null) return null;
+
         $user = wp_get_current_user();
         $isSubscriber = false;
 
