@@ -63,7 +63,7 @@ class Plugin
         // load script for ajax handling
         wp_enqueue_script( 'wp-util' );
         wp_enqueue_script( 'bootstrap-js', $pluginsUrl . '/assets/js/bootstrap.min.js', ['jquery'], null, true );
-        wp_enqueue_script( 'lawi-subscription-handling-js', $pluginsUrl . '/assets/js/script.js', ['jquery', 'wps-scripts'], null, true );
+        wp_enqueue_script( 'lawi-subscription-handling-js', $pluginsUrl . '/assets/js/script.js', ['bootstrap-js'], null, true );
     }
 
     public function acfInit(){
@@ -249,12 +249,12 @@ class Plugin
 
         $cartEmpty = $cart->get_cart_contents_count() == 0 ? 'true' : 'false';
 
-        $button = '<input type="submit" name="submit" value="Abonnieren" class="btn btn-primary" data-modal="false"/>';
+        $button = '<button type="submit" class="btn btn-primary" data-modal="false">Abonnieren</button>';
         $modal = '';
 
         if (!is_user_logged_in()){
             //$button = '<button type="button" class="btn btn-primary" name="login" data-toggle="modal" data-target="#lawiEpaperModal">Melden Sie sich an</button>';
-            $button = '<input type="submit" name="submit" value="Einloggen/Registrieren" class="btn btn-primary" data-modal="login" />';
+            $button = '<button type="submit" class="btn btn-primary" data-modal="login">Einloggen/Registrieren</button>';
             $modal = $this->get_login_modal();
         }
 

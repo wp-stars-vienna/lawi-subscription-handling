@@ -1,4 +1,5 @@
 jQuery(document).ready(function () {
+
     if (jQuery('.epaper-form form').length) {
         store_epaper_form_data();
     }
@@ -17,13 +18,19 @@ function store_epaper_form_data() {
         let date = jQuery(this).find('.dateSelect').find(":selected").val();
         let productID = jQuery(this).find('.productSelect').val();
         let cartEmpty = jQuery(this).find('.CartEmpty');
-        let button = jQuery(this).find("input[type='submit']");
+        let button = jQuery(this).find("button[type='submit']");
+        let buttonText = jQuery(this).find("button[type='submit']").html();
+        let loadingIcon = '<i class="fas fa-spinner"></i>';
+
+        button.find('i').remove();
 
         if(cartEmpty.val() == 'false'){
             e.preventDefault();
             jQuery('#lawiEpaperCleanCartModal').modal();
 
             jQuery('.emptyCart').on('click', function (event){
+                button.html( loadingIcon + ' ' + buttonText );
+                button.find('i').addClass('fa-spin');
                 cartEmpty.val('true');
                 jQuery('#lawiEpaperCleanCartModal').modal('hide');
 
