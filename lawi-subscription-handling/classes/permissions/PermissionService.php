@@ -13,7 +13,9 @@ class PermissionService
 
     public function __construct(string $subscriptionsJsonFile){
         $this->subscriptionsJsonFile = $subscriptionsJsonFile;
-        $this->readJsonData();
+        $result = $this->readJsonData();
+
+        if($result === false) return;
 
         if(
             !!$this->subscriptionsArray['ePaperSubscriptions'] &&
@@ -60,6 +62,17 @@ class PermissionService
             {
                 $enrichData = [];
                 foreach ($subscriptionsArray['ePaperSubscriptions'] as $subscription){
+
+                    if(!function_exists('get_field')){
+                        add_action( 'admin_notices', function(){
+                            $html = '<div class="error notice">';
+                            $html .= '<p>ACF ist nicht installiert - lawi-subscription-handling funktioniert nicht ohne ACF Pro.</p>';
+                            $html .= '</div>';
+                            echo $html;
+                        } );
+                        return false;
+                    }
+
                     $productID = get_field('wps_lawi_subproduct_' . $subscription['SubscriptionProduct'], 'options') ?? null;
                     if(!!$productID){
 
