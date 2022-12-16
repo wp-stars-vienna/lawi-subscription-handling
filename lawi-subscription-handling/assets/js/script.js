@@ -53,6 +53,9 @@ function store_epaper_form_data() {
             }).fail(response => {
                 //console.log(response);
             })
+        }else{
+            button.html( loadingIcon + ' ' + buttonText );
+            button.find('i').addClass('fa-spin');
         }
     });
 }
