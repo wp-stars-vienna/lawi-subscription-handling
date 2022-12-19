@@ -8,6 +8,10 @@
           "label": "LaWi AT E-Paper Abonnent/in"
         }
       ],
+      "meta": {
+        "country": "at",
+        "type": "single"
+      },
       "permissions": [
         {"read-epaper-lawi-austria" :  true},
         {"see-paywall" :  true}
@@ -21,6 +25,10 @@
           "label": "LaWi DE E-Paper Abonnent/in"
         }
       ],
+      "meta": {
+        "country": "de",
+        "type": "single"
+      },
       "permissions": [
         {"read-epaper-lawi-austria" :  true},
         {"see-paywall" :  true}
@@ -34,6 +42,10 @@
           "label": "LaWi Bio E-Paper Abonnent/in"
         }
       ],
+      "meta": {
+        "country": false,
+        "type": "bio"
+      },
       "permissions": [
         {"read-epaper-bio" :  true},
         {"see-paywall" :  true}
@@ -47,6 +59,10 @@
           "label": "LaWi Kombi AT E-Paper Abonnent/in"
         }
       ],
+      "meta": {
+        "country": "at",
+        "type": "kombi"
+      },
       "permissions": [
         {"read-epaper-lawi-austria" :  true},
         {"read-epaper-bio" :  true},
@@ -61,6 +77,10 @@
           "label": "LaWi Kombi DE E-Paper Abonnent/in"
         }
       ],
+      "meta": {
+        "country": "de",
+        "type": "kombi"
+      },
       "permissions": [
         {"read-epaper-lawi-germany" :  true},
         {"read-epaper-bio" :  true},
