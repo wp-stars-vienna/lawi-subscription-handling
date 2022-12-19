@@ -1,0 +1,65 @@
+
+:root {
+    --epaperGap : 2rem;
+    --lawiGreen: #298851;
+}
+.row.epaper .epaperCard {
+    background: var(--lawiGreen);
+    padding: 2.5rem 1rem;
+    color: white;
+}
+
+.epaperCard h3 {
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.row.epaper, .row.epaper .col-4 {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding: 0 !important;
+}
+
+.row.epaper {
+    gap: var( --epaperGap ) !important;
+    margin-bottom: var( --epaperGap ) ;
+}
+
+.row.epaper > div {
+    max-width: calc( 33.33% - var( --epaperGap )  ) !important;
+}
+
+.row.epaper button.btn.btn-primary {
+    background-color: white;
+    color: green;
+    font-weight: bold;
+    width: 90%;
+    margin: 0 auto;
+    display: block;
+    text-transform:uppercase;
+    border-color: var(--lawiGreen);
+}
+
+.row.epaper hr {
+    border-top-color: white;
+    margin: 2.5rem 0;
+}
+
+.row.epaper select {
+    border-radius: 5px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    width: 90%;
+}
+
+.row.epaper .price {
+    font-size: 1.2rem;
+    text-align: center;
+    margin: 2rem 0 1rem;
+}
+
+.row.epaper .price .big {
+    font-size: 1.5em;
+    display: inline-block;
+}
