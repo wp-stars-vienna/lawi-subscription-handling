@@ -33,6 +33,7 @@ class Plugin
         $this->path = $path;
         add_action('init', [$this, 'init']);
         add_action('wp_enqueue_scripts', [$this, 'register_scripts'] );
+//        add_action('wp_enqueue_style', [$this, 'register_styles'] );
         add_action( 'wp_ajax_nopriv_addToCartExtraData', [$this, 'addToCartExtraData'] );
         add_action( 'wp_ajax_addToCartExtraData', [$this, 'addToCartExtraData'] );
         add_action('acf/init', [$this, 'acfInit']);
@@ -60,11 +61,23 @@ class Plugin
     {
         $pluginsUrl = plugins_url() . '/lawi-subscription-handling';
 
+
         // load script for ajax handling
         wp_enqueue_script( 'wp-util' );
+        wp_enqueue_style( 'epaper-styles', $pluginsUrl . '/assets/css/style.css');
+
         wp_enqueue_script( 'bootstrap-js', $pluginsUrl . '/assets/js/bootstrap.min.js', ['jquery'], null, true );
         wp_enqueue_script( 'lawi-subscription-handling-js', $pluginsUrl . '/assets/js/script.js', ['bootstrap-js'], null, true );
     }
+
+//    public function register_styles(): void
+//    {
+//
+//        $pluginsUrl = plugins_url() . '/lawi-subscription-handling';
+//
+//        // load style
+//        wp_enqueue_style( 'epaper-styles', $pluginsUrl . '/assets/css/style.css');
+//    }
 
     public function acfInit(){
         $this->addAcfOptionspage();
@@ -145,9 +158,64 @@ class Plugin
 
         $product_ids = explode(",", $atts['id']);
 
-        // get grid data per product
-        $string = '<div class="row">';
-        foreach ($product_ids as $id) {
+
+        $subscriptionProducts = Plugin::get_instance()->permissionService->getSubscriptionsArray()['ePaperSubscriptions'];
+
+        $products = [];
+        foreach ($subscriptionProducts as $key => $subscriptionProduct){
+
+            $product_id = (int) $key;
+            $product = wc_get_product($product_id);
+
+            $product = [
+                'id' => $product_id,
+                'country' => $subscriptionProduct['meta']['country'],
+                'type' => $subscriptionProduct['meta']['type'],
+            ];
+
+
+            $products[] = $product;
+        }
+
+        //1.  sort subscriptionproducts
+        //  single + bio
+        //  kombi + bio
+        // bio should be the last item
+
+        $productsSingle = [];
+        foreach ($products as $product) {
+            if ($product['type'] == 'single') {
+                $productsSingle[] = $product['id'];
+            }
+        }
+
+        foreach ($products as $product) {
+            if ($product['type'] == 'bio') {
+                $productsSingle[] = $product['id'];
+            }
+        }
+
+        $productsKombi = [];
+        foreach ($products as $product) {
+            if ($product['type'] == 'kombi') {
+                $productsKombi[] = $product['id'];
+            }
+        }
+        foreach ($products as $product) {
+            if ($product['type'] == 'bio') {
+                $productsKombi[] = $product['id'];
+            }
+        }
+
+        // 2. show epapers in 2 rows
+        $string = '<div class="row epaper single">';
+        foreach ($productsSingle as $id) {
+            $string .= $this->get_epaper_grid_item($id);
+        }
+        $string .= '</div>';
+
+        $string .= '<div class="row epaper kombi">';
+        foreach ($productsKombi as $id) {
             $string .= $this->get_epaper_grid_item($id);
         }
         $string .= '</div>';
@@ -176,25 +244,24 @@ class Plugin
         }
 
         // get product data
-        $img_id = $product->get_image_id();
         $name = $product->get_name();
         $price = $product->get_price();
+        $postExcerpt = get_post( $product_id )->post_content;
 
         // epaper form
-        $form  = $this->get_epaper_product_form( $product );
+        $form  = $this->get_epaper_product_form( $product, $price );
 
         if($isSubscriber === true){
             $form = '<button type="button" class="btn btn-secondary" disabled>Bereits abonniert</button>';
         }
 
         // Build return string
-        $string = '<div class="col-4">';
+        $string = '<div class="col-4"><div class="epaperCard">';
 
         $string .= '<h3>' . $name . '</h3>';
-        $string .= wp_get_attachment_image($img_id);
-        $string .= '<p>€' . $price . '</p>';
+        $string .= '<p>' . $postExcerpt . '</p>';
         $string .=  '<div class="epaper-form my-2">' . $form . '</div>';
-        $string .= '</div>';
+        $string .= '</div></div>';
 
         return $string;
     }
@@ -215,14 +282,14 @@ class Plugin
         ];
 
         $options = '';
-        $options .= '<option value="" selected>' .  __('auswählen', '') . '</option>';
+        $options .= '<option value="" selected>' .  __('Startdatum auswählen', '') . '</option>';
         foreach ($dates as $key => $date){
             $options .= '<option value="' . $date->format('Y-m-d') . '">' . ($key == 0 ? __('Heute', '') : $date->format('d.m.Y')) . '</option>';
         }
 
         // Build return string
         $html = '<div>';
-        $html .= '<label for="epaper-startdate-'.$productID.'">' . __('Startdatum:', '') . '</label><br>';
+//        $html .= '<label for="epaper-startdate-'.$productID.'">' . __('Startdatum:', '') . '</label><br>';
         $html .= '<select name="epaper-startdate" id="epaper-startdate-'.$productID.'" class="form-select form-select-lg mb-3 dateSelect" required>';
         $html .= $options;
         $html .= '</select>';
@@ -238,7 +305,7 @@ class Plugin
      * @param $product
      * @return string
      */
-    public function get_epaper_product_form($product): string|null
+    public function get_epaper_product_form($product , $price ): string|null
     {
         $wc_cart_url = wc_get_cart_url();
         $action = $wc_cart_url . $product->add_to_cart_url();
@@ -249,7 +316,7 @@ class Plugin
 
         $cartEmpty = $cart->get_cart_contents_count() == 0 ? 'true' : 'false';
 
-        $button = '<button type="submit" class="btn btn-primary" data-modal="false">Abonnieren</button>';
+        $button = '<button type="submit" class="btn btn-primary" data-modal="false">Abonnieren <i class="fa fa-solid fa-caret-down"></i></button>';
         $modal = '';
 
         if (!is_user_logged_in()){
@@ -260,7 +327,10 @@ class Plugin
 
         //render button
         $form = '<form id="epaper-id-'. $product_id .'" action="'. $action . '" method="post">';
+        $form .= '<hr>';
         $form .= $this->get_epaper_date_selector($product_id);
+        $form .= '<hr>';
+        $form .= '<div class="price"><div class="big">' . $price . '€</div> / Monat</div>';
         $form .= '<input type="hidden" name="productID" value="'.$product_id.'" class="productSelect"/>';
         $form .= '<input type="hidden" name="CartEmpty" value="' . $cartEmpty . '" class="CartEmpty"/>';
         $form .= $button;
