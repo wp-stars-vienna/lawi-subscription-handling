@@ -31,9 +31,21 @@ class Checkout
 
             if(isset($subscriptionProducts[$addedProductID])){
                 $cartItems = WC()->cart->cart_contents;
+                $subs = [];
                 foreach ($cartItems as $key => $item){
                     if ($cartItems[$key]['product_id'] != $addedProductID) {
                         WC()->cart->set_quantity($key,'0');
+                    }else{
+                        // collect the subscription products
+                        $subs[] = $key;
+                    }
+                }
+
+                // if there are more subscription products, remove all but not the last
+                if(count($subs)>1){
+                    array_pop($subs);
+                    foreach ($subs as $sub){
+                        WC()->cart->set_quantity($sub,'0');
                     }
                 }
             }
