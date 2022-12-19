@@ -16,13 +16,37 @@ class Checkout
         add_action( 'woocommerce_admin_order_data_after_billing_address', [$this, 'display_extra_checkbox_value'], 10, 1);
         add_action( 'woocommerce_coupons_enabled', [$this, 'woocommerce_checkout_coupon_form'], 9999, 1 );
         add_action( 'woocommerce_thankyou', [$this, 'new_order_action'], 10, 2 );
+        add_action('woocommerce_add_to_cart', [$this, 'add_to_cart']);
 
         add_filter( 'woocommerce_coupon_is_valid_for_cart', [$this, 'exclude_product_from_subscription_products'], 9999, 2);
         add_filter('woocommerce_add_to_cart_redirect', [$this, 'add_to_cart_redirect'], 10, 2);
     }
 
+
+    public function add_to_cart(){
+
+        if(isset($_GET['add-to-cart']) && !!$_GET['add-to-cart']){
+            $addedProductID = (int) $_GET['add-to-cart'];
+            $subscriptionProducts = Plugin::get_instance()->permissionService->getSubscriptionsArray()['ePaperSubscriptions'];
+
+            if(isset($subscriptionProducts[$addedProductID])){
+                $cartItems = WC()->cart->cart_contents;
+                foreach ($cartItems as $key => $item){
+                    if ($cartItems[$key]['product_id'] != $addedProductID) {
+                        WC()->cart->set_quantity($key,'0');
+                    }
+                }
+            }
+        }
+    }
+
     public function add_to_cart_redirect($url, $product){
-        return $product->get_type() == 'subscription' ? wc_get_checkout_url() : $url;
+
+        if(!!$product && !!$url){
+            return $product->get_type() == 'subscription' ? wc_get_checkout_url() : $url;
+        }
+
+        return $url;
     }
 
     public function needWafeOfwithdrawal(){
