@@ -41,12 +41,7 @@ class Checkout
     }
 
     public function add_to_cart_redirect($url, $product){
-
-        if(!!$product && !!$url){
-            return $product->get_type() == 'subscription' ? wc_get_checkout_url() : $url;
-        }
-
-        return $url;
+        return $product->get_type() == 'subscription' ? wc_get_checkout_url() : $url;
     }
 
     public function needWafeOfwithdrawal(){
