@@ -28,9 +28,9 @@ class Checkout
         if(isset($_GET['add-to-cart']) && !!$_GET['add-to-cart']){
             $addedProductID = (int) $_GET['add-to-cart'];
             $subscriptionProducts = Plugin::get_instance()->permissionService->getSubscriptionsArray()['ePaperSubscriptions'];
+            $cartItems = WC()->cart->cart_contents;
 
             if(isset($subscriptionProducts[$addedProductID])){
-                $cartItems = WC()->cart->cart_contents;
                 $subs = [];
                 foreach ($cartItems as $key => $item){
                     if ($cartItems[$key]['product_id'] != $addedProductID) {
@@ -41,11 +41,18 @@ class Checkout
                     }
                 }
 
-                // if there are more subscription products, remove all but not the last
+                // if there are more subscription products in the cart, remove all but not the last
                 if(count($subs)>1){
                     array_pop($subs);
                     foreach ($subs as $sub){
                         WC()->cart->set_quantity($sub,'0');
+                    }
+                }
+            }else{
+                // remove subscription product if you add a normal product and there is a subscription in your cart
+                foreach ($cartItems as $key => $item){
+                    if( isset($item['data']) && $item['data'] instanceof  \WC_Product_Subscription){
+                        WC()->cart->set_quantity($key,'0');
                     }
                 }
             }
