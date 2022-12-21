@@ -52,8 +52,19 @@ class Checkout
         }
     }
 
-    public function add_to_cart_redirect($url, $product){
-        return $product->get_type() == 'subscription' ? wc_get_checkout_url() : $url;
+    /**
+     * Important! the second parameter $product is null when you add a product to cart via ajax!
+     * @param string $url
+     * @param $product
+     * @return string
+     */
+    public function add_to_cart_redirect(string $url, $product=null): string
+    {
+        if(null !== $product){
+            return $product->get_type() == 'subscription' ? wc_get_checkout_url() : $url;
+        }
+
+        return $url;
     }
 
     public function needWafeOfwithdrawal(){
