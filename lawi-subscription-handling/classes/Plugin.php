@@ -55,6 +55,8 @@ class Plugin
 
         add_action('login_redirect', [$this, 'user_login_filter']);
         add_shortcode('epaper-landingpage-sc', [$this, 'epaper_landingpage_sc']);
+
+        $this->checkAndCleanCart();
     }
 
     public function register_scripts(): void
@@ -70,14 +72,19 @@ class Plugin
         wp_enqueue_script( 'lawi-subscription-handling-js', $pluginsUrl . '/assets/js/script.js', ['bootstrap-js'], null, true );
     }
 
-//    public function register_styles(): void
-//    {
-//
-//        $pluginsUrl = plugins_url() . '/lawi-subscription-handling';
-//
-//        // load style
-//        wp_enqueue_style( 'epaper-styles', $pluginsUrl . '/assets/css/style.css');
-//    }
+    public function checkAndCleanCart(){
+        $cartItems = WC()->cart->get_cart();
+        if(is_array($cartItems) && count($cartItems)>1){
+            foreach ( $cartItems as $cart_item_key => $cart_item ) {
+                if(isset($cart_item['data'])){
+                    $product = $cart_item['data'];
+                    if( $product instanceof  \WC_Product_Subscription){
+                        WC()->cart->set_quantity($cart_item_key,'0');
+                    }
+                 }
+            }
+        }
+    }
 
     public function acfInit(){
         $this->addAcfOptionspage();
