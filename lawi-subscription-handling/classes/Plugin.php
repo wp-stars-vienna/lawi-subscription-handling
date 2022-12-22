@@ -57,6 +57,7 @@ class Plugin
         add_shortcode('epaper-landingpage-sc', [$this, 'epaper_landingpage_sc']);
 
         $this->checkAndCleanCart();
+
     }
 
     public function register_scripts(): void
@@ -66,22 +67,25 @@ class Plugin
 
         // load script for ajax handling
         wp_enqueue_script( 'wp-util' );
-        wp_enqueue_style( 'epaper-styles', $pluginsUrl . '/assets/css/style.css');
+        wp_enqueue_style( 'epaper-styles', $pluginsUrl . '/assets/css/style.css', [], null);
 
         wp_enqueue_script( 'bootstrap-js', $pluginsUrl . '/assets/js/bootstrap.min.js', ['jquery'], null, true );
         wp_enqueue_script( 'lawi-subscription-handling-js', $pluginsUrl . '/assets/js/script.js', ['bootstrap-js'], null, true );
     }
 
     public function checkAndCleanCart(){
-        $cartItems = WC()->cart->get_cart();
-        if(is_array($cartItems) && count($cartItems)>1){
-            foreach ( $cartItems as $cart_item_key => $cart_item ) {
-                if(isset($cart_item['data'])){
-                    $product = $cart_item['data'];
-                    if( $product instanceof  \WC_Product_Subscription){
-                        WC()->cart->set_quantity($cart_item_key,'0');
-                    }
-                 }
+        $cart = WC()->cart;
+        if(!!$cart){
+            $cartItems = WC()->cart->get_cart();
+            if(is_array($cartItems) && count($cartItems)>1){
+                foreach ( $cartItems as $cart_item_key => $cart_item ) {
+                    if(isset($cart_item['data'])){
+                        $product = $cart_item['data'];
+                        if( $product instanceof  \WC_Product_Subscription){
+                            WC()->cart->set_quantity($cart_item_key,'0');
+                        }
+                     }
+                }
             }
         }
     }
@@ -259,7 +263,7 @@ class Plugin
         $form  = $this->get_epaper_product_form( $product, $price );
 
         if($isSubscriber === true){
-            $form = '<button type="button" class="btn btn-secondary" disabled>Bereits abonniert</button>';
+            $form = '<button type="button" class="btn btn-secondary already-subscribed" disabled="true">Bereits abonniert</button>';
         }
 
         // Build return string
@@ -323,12 +327,12 @@ class Plugin
 
         $cartEmpty = $cart->get_cart_contents_count() == 0 ? 'true' : 'false';
 
-        $button = '<button type="submit" class="btn btn-primary" data-modal="false">Abonnieren <i class="fa fa-solid fa-caret-down"></i></button>';
+        $button = '<button type="submit" class="btn btn-primary subscribe-now" data-modal="false">Abonnieren</button>';
         $modal = '';
 
         if (!is_user_logged_in()){
             //$button = '<button type="button" class="btn btn-primary" name="login" data-toggle="modal" data-target="#lawiEpaperModal">Melden Sie sich an</button>';
-            $button = '<button type="submit" class="btn btn-primary" data-modal="login">Einloggen/Registrieren</button>';
+            $button = '<button type="submit" class="btn btn-primary subscribe-now" data-modal="login">Einloggen/Registrieren</button>';
             $modal = $this->get_login_modal();
         }
 

@@ -7,6 +7,7 @@
     background: var(--lawiGreen);
     padding: 2.5rem 1rem;
     color: white;
+    height: 100%;
 }
 
 .epaperCard h3 {
@@ -29,7 +30,7 @@
     max-width: calc( 33.33% - var( --epaperGap )  ) !important;
 }
 
-.row.epaper button.btn.btn-primary {
+.row.epaper button.btn.btn-primary.subscribe-now {
     background-color: white;
     color: green;
     font-weight: bold;
@@ -38,6 +39,20 @@
     display: block;
     text-transform:uppercase;
     border-color: var(--lawiGreen);
+}
+
+button.btn.btn-secondary.already-subscribed {
+    background-color: white !important;
+    color: var(--lawiGreen) !important;
+    font-weight: bold;
+    width: 90%;
+    margin: 0 auto;
+    display: block;
+    text-transform:uppercase;
+    border-color: var(--lawiGreen);
+    opacity: 0.5;
+    cursor: default;
+    visibility: visible !important;
 }
 
 .row.epaper hr {
@@ -62,4 +77,27 @@
 .row.epaper .price .big {
     font-size: 1.5em;
     display: inline-block;
+}
+
+.modal-dialog {
+    color: #555;
+}
+
+.modal-dialog p.login-username,
+.modal-dialog p.login-password {
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-dialog div.tab-content {
+    padding-top: 25px;
+    padding-bottom: 25px;
+    padding-left: 25px;
+    padding-right: 25px;
+    border: solid 1px #dedede;
+    border-top: 0;
+}
+
+.modal-dialog li.nav-item a {
+    text-decoration:  none;
 }
