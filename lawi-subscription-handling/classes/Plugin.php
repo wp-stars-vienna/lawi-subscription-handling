@@ -32,6 +32,7 @@ class Plugin
     {
         $this->path = $path;
         add_action('init', [$this, 'init']);
+        add_action('wp_loaded', [$this, 'wp_loaded']);
         add_action('wp_enqueue_scripts', [$this, 'register_scripts'] );
 //        add_action('wp_enqueue_style', [$this, 'register_styles'] );
         add_action( 'wp_ajax_nopriv_addToCartExtraData', [$this, 'addToCartExtraData'] );
@@ -55,9 +56,11 @@ class Plugin
 
         add_action('login_redirect', [$this, 'user_login_filter']);
         add_shortcode('epaper-landingpage-sc', [$this, 'epaper_landingpage_sc']);
+    }
 
-        $this->checkAndCleanCart();
-
+    public function wp_loaded(): void
+    {
+         $this->checkAndCleanCart();
     }
 
     public function register_scripts(): void
