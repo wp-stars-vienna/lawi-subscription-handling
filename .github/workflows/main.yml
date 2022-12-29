@@ -23,28 +23,38 @@ jobs:
       - name: Replace Version in Plugin 1
         uses: datamonsters/replace-action@v2
         with:
-          files:  'README.md'
+          files:  'Readme.md'
           replacements:  "%%version%%=${{ steps.tag_version.outputs.new_version }}"
       - name: Replace Version in Plugin 2
         uses: datamonsters/replace-action@v2
         with:
           files:  'info.json'
-          replacements:  "%%version%%=${{ steps.tag_version.outputs.new_version }}"
+          replacements:  "%%version%%=${{ steps.tag_version.outputs.new_version }}"  
+      - name: Replace Zip Version Name in Plugin 2
+        uses: datamonsters/replace-action@v2
+        with:
+          files:  'info.json'
+          replacements:  "%%version%%=${{ steps.tag_version.outputs.new_version }}" 
+      - name: Replace required Version Name in Plugin 3
+        uses: datamonsters/replace-action@v2
+        with:
+          files:  'info.json'
+          replacements:  "%%version%%=${{ steps.tag_version.outputs.new_version }}"  
       - name: Replace Version in Plugin 3
         uses: datamonsters/replace-action@v2
         with:
           files:  'lawi-subscription-handling/lawi-subscription-handling.php'
-          replacements:  "%%version%%=${{ steps.tag_version.outputs.new_version }}"
-#      - name: Sync to Production
-#        env:
-#          dest: 'e93477@e93477-ssh.services.easyname.eu:/data/web/e93477/html/apps/plugins.michael-ritsch.com/wps-plugin'
-#        run: |
-#          echo "${{secrets.DEPLOY_KEY}}" > deploy_key
-#          chmod 600 ./deploy_key
-#          zip -r wps-plugin.zip wps-plugin
-#          rsync -zvr --delete \
-#            -e 'ssh -i ./deploy_key -o StrictHostKeyChecking=no -p 22' \
-#            --include 'wps-plugin.zip' \
-#            --include 'info.json' \
-#            --exclude '*' \
-#            ./ ${{env.dest}}
+          replacements:  "%%version%%=${{ steps.tag_version.outputs.new_version }}"  
+      - name: Sync to Production
+        env:
+          dest: '${{ secrets.DEPLOYMENT_SERVER_USERNAME }}@${{ secrets.DEPLOYMENT_SERVER_IP }}:~/www/documentation.wp-stars.com/public_html/development/lawi-subscription-handling'
+        run: |
+          echo "${{secrets.AUTO_DEPLOY_KEY}}" > deploy_key
+          chmod 600 ./deploy_key
+          zip -r lawi-subscription-handling.zip lawi-subscription-handling
+          rsync -zvr --delete \
+            -e 'ssh -i ./deploy_key -o StrictHostKeyChecking=no -p 18765' \
+            --include 'lawi-subscription-handling.zip' \
+            --include 'info.json' \
+            --exclude '*' \
+            ./ ${{env.dest}}
