@@ -50,7 +50,7 @@
 stripe listen --forward-to localhost:4242/webhook
 ```
 
-# Automatic Deployment
+# Automatic Deployment 
 
 > Dieses Plugin zeigt wie lokals Arbeiten bzw. ein Github Workflow für Plugins aussehen kann.
 
