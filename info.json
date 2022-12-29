@@ -1,0 +1,8 @@
+{
+    "plugin" : "lawi-subscription-handling",
+    "version" : "%%version%%",
+    "download_url" : "https://documentation.wp-stars.com/development/lawi-subscription-handling/lawi-subscription-handling.zip?version=%%version%%",
+    "requires" : "%%version%%",
+    "last_updated" : "2022-08-28 02:10:00",
+    "tested" : "6.0.1"
+}
