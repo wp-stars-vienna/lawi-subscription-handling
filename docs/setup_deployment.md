@@ -4,6 +4,7 @@ Ziel ist ein Setup das automatisch beim Push in den Master/Main Branch
 einen neuen Release (git tag) erstellt, diesem eine semantic relase Version Number zuweist 
 und den Code anschließend auf einen Webserver deployed.
 
+
 ## Vorbereitung
 
 1. Neues Projekt in Github anlegen
