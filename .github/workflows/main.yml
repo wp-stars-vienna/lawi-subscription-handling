@@ -1,7 +1,7 @@
 name: Bump version
 on:
   push:
-    branches: [ 'main' ]
+    branches: [ 'master' ]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -47,7 +47,7 @@ jobs:
           replacements:  "%%version%%=${{ steps.tag_version.outputs.new_version }}"  
       - name: Sync to Production
         env:
-          dest: 'u127-7newkoexwyyn@35.214.226.253:~/www/documentation.wp-stars.com/public_html/development/lawi-subscription-handling'
+          dest: '${{ secrets.DEPLOYMENT_SERVER_USERNAME }}@${{ secrets.DEPLOYMENT_SERVER_IP }}:~/www/documentation.wp-stars.com/public_html/development/lawi-subscription-handling'
         run: |
           echo "${{secrets.AUTO_DEPLOY_KEY}}" > deploy_key
           chmod 600 ./deploy_key
